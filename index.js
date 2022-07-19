@@ -5,7 +5,9 @@ const fs = require("fs");
 const iconv = require('iconv-lite')
 const config = require('config')
 const token = config.get('TOKEN')
-mongoose.connect('mongodb+srv://mernapp:mernapppass@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority').then(() => console.log('MongoDB connected'))
+const dbPASS = config.get('dbPASS')
+
+mongoose.connect(`mongodb+srv://mernapp:${dbPASS}@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority`).then(() => console.log('MongoDB connected'))
 
 const bot = new TelegramApi(token, {polling: true})
 let currentAction = ''
