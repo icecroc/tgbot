@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "config": "^3.3.7",
     "git": "^0.1.5",
     "iconv-lite": "^0.6.3",
     "mongoose": "^6.4.4",

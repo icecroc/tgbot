@@ -3,7 +3,8 @@ const tgUser = require('./models/user.model')
 const mongoose = require('mongoose')
 const fs = require("fs");
 const iconv = require('iconv-lite')
-const token = '5406824758:AAFsZPqJtvvEnhsUXMXTE_7SZm5nDJujeTU'
+const config = require('config')
+const token = config.get('TOKEN')
 mongoose.connect('mongodb+srv://mernapp:mernapppass@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority').then(() => console.log('MongoDB connected'))
 
 const bot = new TelegramApi(token, {polling: true})
@@ -33,14 +34,6 @@ bot.onText(/\/start/, async msg => {
     return bot.sendMessage(id, `Вы уже зарегистрированы, как: "${candidate.name}"\nВаш промокод: ${candidate.promo}`)
 })
 
-/*
-bot.onText(/\/register/, async msg => {
-    const {id} = msg.chat
-    await bot.sendMessage(id, `Введите своё ФИО`)
-    setName = true
-})
-*/
-
 bot.onText(/\/info/, async msg => {
     const {id, username} = msg.chat
     await tgUser.find().then(async allUsers => {
@@ -54,12 +47,12 @@ bot.onText(/\/info/, async msg => {
 
         const buf = iconv.encode(users, 'win1251')
 
-        await fs.writeFile("users.csv", buf,{}, (err) => {
+        await fs.writeFile("./files/users.csv", buf,{}, (err) => {
             if (err) console.log(err)
         })
         currentAction = 'info'
         await bot.sendMessage(id, "Информация по пользователям")
-        await bot.sendDocument(id, 'users.csv')
+        await bot.sendDocument(id, './files/users.csv')
     })
     currentAction = 'info'
     return console.log(`${id} - @${username} запросил информацию по пользователям`)
