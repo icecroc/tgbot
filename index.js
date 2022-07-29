@@ -7,7 +7,7 @@ const iconv = require('iconv-lite')
 const config = require('config')
 const token = config.get('TOKEN')
 const dbPASS = config.get('dbPASS')
-const groupId = '-774666432'
+const groupId = '-1001737425964'
 
 mongoose.connect(`mongodb+srv://mernapp:${dbPASS}@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority`).then(() => console.log('MongoDB connected'))
 
@@ -56,7 +56,7 @@ bot.onText(/\/start/, async msg => {
 bot.onText(/\/info/, async msg => {
     const {id, username} = msg.chat
     await tgUser.find().then(async allUsers => {
-        const users = allUsers.map((f, i) => {
+        const users = allUsers.map((f) => {
             const userPhone = f.phone.substring(f.phone.length - 7)
             const userPhoneCode = f.phone.substr(0, f.phone.length - 7)
             return `${f.name};${f.username ?  `${f.username}` : ''};${f.phone[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode}) ${userPhone}`};${f.birthDate};${f.promo};${f.startDate};${f.regDate}`
@@ -76,7 +76,7 @@ bot.onText(/\/info/, async msg => {
 })
 
 bot.onText(/\/promo/, async msg => {
-    const {id, username} = msg.chat
+    const {id} = msg.chat
     const candidate = await tgUser.findOne({userId: id})
     if (!candidate || candidate.promo === '') {
         await bot.sendMessage(id, `Вы ещё не регистрировались, пройдите регистрацию`)
@@ -108,10 +108,11 @@ bot.onText(/\/codes/, async msg => {
 bot.on('text', async msg => {
     const {id} = msg.chat
     const text = msg.text
-    const uuid = _ => 'xxxxxx0000'.replace(/x|0/g, v => v === 'x'
+    const uuid = _ => 'x0x0x0x0x0'.replace(/x|0/g, v => v === 'x'
         ? String.fromCharCode(Math.floor(Math.random() * 26) + 97).toUpperCase()
         : Math.floor(Math.random() * 10)).toUpperCase()
-    const promocode = uuid()
+    const promocode1 = uuid()
+    const promocode = `BUZZ_${promocode1}`
     const candidate = await tgUser.findOne({userId: id})
     switch (currentAction) {
         case 'setName' :
@@ -131,7 +132,7 @@ bot.on('text', async msg => {
             const now = new Date()
             const regDate = moment(now).locale('ru').format('lll')
             await tgUser.findOneAndUpdate({userId: id}, {birthDate: text, promo: promocode, regDate: regDate})
-            console.log(`${candidate.name} зарегистрирован с промокодом: ${promocode}`)
+            console.log(`${candidate.name} зарегистрирован(а) с промокодом: ${promocode}`)
             await bot.sendMessage(groupId, `${candidate.name} зарегистрирован с промокодом: ${promocode}`)
             currentAction = 'done'
             await bot.sendMessage(id, `Поздравляем, ты успешно зарегистрировался.\nЛови свой первый промокод на 10 000 сум: ${promocode}`)
@@ -144,7 +145,7 @@ bot.on('text', async msg => {
 })
 
 bot.on('contact', async msg => {
-    const {id, username} = msg.chat
+    const {id} = msg.chat
     const contact = msg.contact.phone_number
     if(currentAction !== 'setContact') return
     const candidate = await tgUser.findOne({phone: msg.contact.phone_number})
@@ -161,8 +162,4 @@ bot.on('contact', async msg => {
 
 
 // TODO
-// Запрашивать контакт, имя, дату рождения пользователя в процессе регистрации.
-// Поменять setName на Action, и сделать Switch по проверке этого Action для процесса регистрации
-// Action = 'Contact' - Следующее сообщение идёт как контакт
-// Action = 'Name' - Следующее сообщение станет именем пользователя
-// Action = 'bDate' - Следующее сообщение Дата рождения
+// Добавить к промокодам BUZZ_ в начале
