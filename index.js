@@ -1,4 +1,5 @@
 const TelegramApi = require('node-telegram-bot-api')
+const moment = require('moment')
 const tgUser = require('./models/user.model')
 const mongoose = require('mongoose')
 const fs = require("fs");
@@ -6,6 +7,7 @@ const iconv = require('iconv-lite')
 const config = require('config')
 const token = config.get('TOKEN')
 const dbPASS = config.get('dbPASS')
+const groupId = '-774666432'
 
 mongoose.connect(`mongodb+srv://mernapp:${dbPASS}@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority`).then(() => console.log('MongoDB connected'))
 
@@ -18,10 +20,24 @@ bot.setMyCommands([
 ])
 
 bot.onText(/\/start/, async msg => {
-    const {id} = msg.chat
+    const {id, username} = msg.chat
     const candidate = await tgUser.findOne({userId: id})
-    console.log(candidate)
-    if (!candidate || candidate.promo === '') {
+    const now = new Date()
+    const startDate = moment(now).locale('ru').format('lll')
+    if (!candidate) {
+        await bot.sendMessage(id, `Приветствую вас, ${msg.chat.first_name}\nОтправьте контакт, и зарегистрируйтесь в системе, для получения промокодов и прочих плюшек`, {
+            reply_markup: {
+                keyboard: [
+                    [{text: 'Отправить контакт', callback_data: 'contact', request_contact: true}]
+                ], one_time_keyboard: true
+            }
+        })
+        const user = new tgUser({userId: id, username: username, startDate: startDate})
+        await user.save()
+        currentAction = 'setContact'
+        return;
+    }
+    if (candidate.promo === '') {
         await bot.sendMessage(id, `Приветствую вас, ${msg.chat.first_name}\nОтправьте контакт, и зарегистрируйтесь в системе, для получения промокодов и прочих плюшек`, {
             reply_markup: {
                 keyboard: [
@@ -33,7 +49,8 @@ bot.onText(/\/start/, async msg => {
         return;
     }
     currentAction = 'done'
-    return bot.sendMessage(id, `Вы уже зарегистрированы, как: "${candidate.name}"\nВаш промокод: ${candidate.promo}`)
+    await bot.sendMessage(id, `Вы уже зарегистрированы, как: "${candidate.name}"\nВаш промокод: ${candidate.promo}`)
+    return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
 })
 
 bot.onText(/\/info/, async msg => {
@@ -42,9 +59,7 @@ bot.onText(/\/info/, async msg => {
         const users = allUsers.map((f, i) => {
             const userPhone = f.phone.substring(f.phone.length - 7)
             const userPhoneCode = f.phone.substr(0, f.phone.length - 7)
-            console.log(userPhoneCode + ' ' + userPhone)
-            return `${f.name};${f.username ?  `${f.username}` : ''};${f.phone[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : ` (+${userPhoneCode}) ${userPhone}`};${f.birthDate};${f.promo}`
-
+            return `${f.name};${f.username ?  `${f.username}` : ''};${f.phone[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode}) ${userPhone}`};${f.birthDate};${f.promo};${f.startDate};${f.regDate}`
         }).join('\n')
 
         const buf = iconv.encode(users, 'win1251')
@@ -74,7 +89,8 @@ bot.onText(/\/promo/, async msg => {
             }
         })
     }
-    return bot.sendMessage(id, `Ваш промокод: ${candidate.promo}`)
+    await bot.sendMessage(id, `Ваш промокод: ${candidate.promo}`)
+    return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
 })
 
 bot.onText(/\/codes/, async msg => {
@@ -112,15 +128,18 @@ bot.on('text', async msg => {
                 currentAction = 'done'
                 return bot.sendMessage(id, `Вы уже полностью зарегистрированы, ${candidate.name}\nВаш промокод: ${candidate.promo}`)
             }
-            await tgUser.findOneAndUpdate({userId: id}, {birthDate: text, promo: promocode})
+            const now = new Date()
+            const regDate = moment(now).locale('ru').format('lll')
+            await tgUser.findOneAndUpdate({userId: id}, {birthDate: text, promo: promocode, regDate: regDate})
             console.log(`${candidate.name} зарегистрирован с промокодом: ${promocode}`)
+            await bot.sendMessage(groupId, `${candidate.name} зарегистрирован с промокодом: ${promocode}`)
             currentAction = 'done'
-            return bot.sendMessage(id, `Поздравляем, вы успешно зарегистрировались в системе\nВаш промокод: ${promocode}`)
+            await bot.sendMessage(id, `Поздравляем, ты успешно зарегистрировался.\nЛови свой первый промокод на 10 000 сум: ${promocode}`)
+            return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
         case 'info' :
             break
         case '' :
-            console.log(currentAction)
-            return bot.sendMessage(id, `Я вас не понимаю`)
+            break
     }
 })
 
@@ -131,13 +150,13 @@ bot.on('contact', async msg => {
     const candidate = await tgUser.findOne({phone: msg.contact.phone_number})
     if (candidate) {
         currentAction = 'setName'
-        return bot.sendMessage(id,`Ваш контакт уже зарегестрирован\nТеперь введите Ваше ФИО`)
+        await tgUser.findOneAndUpdate({userId: id}, {phone: contact})
+        return bot.sendMessage(id,`Контакт уже зарегестрирован\nТеперь введи свои ФИО`)
     }
-    const user = new tgUser({userId: id, username: username, phone: contact})
-    await user.save()
+    await tgUser.findOneAndUpdate({userId: id}, {phone: contact})
     currentAction = 'setName'
     console.log(`${id} зарегистрирован с номером ${contact}`)
-    return bot.sendMessage(id, `Контакт успешно зарегистрирован\nТеперь введите Ваше ФИО`)
+    return bot.sendMessage(id, `Контакт успешно зарегистрирован\nТеперь введи свои ФИО`)
 })
 
 

@@ -14,6 +14,7 @@
     "git": "^0.1.5",
     "heroku": "^7.60.2",
     "iconv-lite": "^0.6.3",
+    "moment": "^2.29.4",
     "mongoose": "^6.4.4",
     "node-telegram-bot-api": "^0.58.0",
     "nodemon": "^2.0.19"
