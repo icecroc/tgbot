@@ -32,8 +32,12 @@ bot.onText(/\/start/, async msg => {
                 ], one_time_keyboard: true
             }
         })
-        const user = new tgUser({userId: id, username: username, startDate: startDate})
-        await user.save()
+        try {
+            const user = new tgUser({userId: id, username: username, startDate: startDate})
+            await user.save()
+        } catch (e) {
+            errorMessage(e)
+        }
         currentAction = 'setContact'
         return;
     }
@@ -95,14 +99,18 @@ bot.onText(/\/promo/, async msg => {
 
 bot.onText(/\/codes/, async msg => {
     const {id, username} = msg.chat
-    await tgUser.find().then(async allUsers => {
-        const promos = allUsers.map((f,i) => {
-            return `${i + 1}. ${f.promo}`
-        }).join('\n')
-        currentAction = 'codes'
-        await bot.sendMessage(id, promos)
-    })
-    return console.log(`${id} - @${username} запросил информацию по промокодам`)
+    try {
+        await tgUser.find().then(async allUsers => {
+            const promos = allUsers.map((f,i) => {
+                return `${i + 1}. ${f.promo}`
+            }).join('\n')
+            currentAction = 'codes'
+            await bot.sendMessage(id, promos)
+        })
+        return console.log(`${id} - @${username} запросил информацию по промокодам`)
+    } catch (e) {
+        await errorMessage(e)
+    }
 })
 
 bot.on('text', async msg => {
@@ -120,8 +128,11 @@ bot.on('text', async msg => {
                 currentAction = 'setBirthDay'
                 return bot.sendMessage(id, `Вы уже зарегестрированы как: "${candidate.name}"\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'`)
             }
-            await tgUser.findOneAndUpdate({userId: id}, {name: text})
-            console.log(`${msg.text} зарегестрирован`)
+            try {
+                await tgUser.findOneAndUpdate({userId: id}, {name: text})
+            } catch (e) {
+                await errorMessage(e)
+            }
             currentAction = 'setBirthDay'
             return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'`)
         case 'setBirthDay' :
@@ -131,9 +142,13 @@ bot.on('text', async msg => {
             }
             const now = new Date()
             const regDate = moment(now).locale('ru').format('lll')
-            await tgUser.findOneAndUpdate({userId: id}, {birthDate: text, promo: promocode, regDate: regDate})
+            try {
+                await tgUser.findOneAndUpdate({userId: id}, {birthDate: text, promo: promocode, regDate: regDate})
+            } catch (e) {
+                errorMessage(e)
+            }
             console.log(`${candidate.name} зарегистрирован(а) с промокодом: ${promocode}`)
-            await bot.sendMessage(groupId, `${candidate.name} зарегистрирован с промокодом: ${promocode}`)
+            await bot.sendMessage(groupId, `${candidate.name} зарегистрирован(а) с промокодом: ${promocode}`)
             currentAction = 'done'
             await bot.sendMessage(id, `Поздравляем, ты успешно зарегистрировался.\nЛови свой первый промокод на 10 000 сум: ${promocode}`)
             return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
@@ -148,18 +163,24 @@ bot.on('contact', async msg => {
     const {id} = msg.chat
     const contact = msg.contact.phone_number
     if(currentAction !== 'setContact') return
-    const candidate = await tgUser.findOne({phone: msg.contact.phone_number})
-    if (candidate) {
-        currentAction = 'setName'
+    try {
+        const candidate = await tgUser.findOne({phone: msg.contact.phone_number})
+        if (candidate) {
+            currentAction = 'setName'
+            await tgUser.findOneAndUpdate({userId: id}, {phone: contact})
+            return bot.sendMessage(id,`Контакт уже зарегестрирован\nТеперь введи свои ФИО`)
+        }
         await tgUser.findOneAndUpdate({userId: id}, {phone: contact})
-        return bot.sendMessage(id,`Контакт уже зарегестрирован\nТеперь введи свои ФИО`)
+        currentAction = 'setName'
+        return bot.sendMessage(id, `Контакт успешно зарегистрирован\nТеперь введи свои ФИО`)
+    } catch (e) {
+        await errorMessage(e)
     }
-    await tgUser.findOneAndUpdate({userId: id}, {phone: contact})
-    currentAction = 'setName'
-    console.log(`${id} зарегистрирован с номером ${contact}`)
-    return bot.sendMessage(id, `Контакт успешно зарегистрирован\nТеперь введи свои ФИО`)
 })
 
+async function errorMessage(e) {
+    await bot.sendMessage('422349079', `Ошибка: ${e}`)
+}
 
 // TODO
 // Добавить к промокодам BUZZ_ в начале
