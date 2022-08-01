@@ -5,7 +5,7 @@ const tgUser = new Schema({
     username: {type: String, default: ''},
     name: {type: String},
     promo: {type: String, default: ''},
-    phone: {type: String},
+    phone: {type: String, default: ''},
     birthDate: {type: String},
     startDate: {type: String},
     regDate: {type: String}
