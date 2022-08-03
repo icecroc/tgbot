@@ -32,7 +32,8 @@ const start = async () => {
 
     bot.onText(/\/start/, async msg =>{
         const {id, username, first_name} = msg.chat
-        const startDate = moment(new Date()).locale('ru').format('lll')
+        const startDate1 = moment(new Date()).locale('ru').format('LL')
+        const startDate = startDate1.substring(0, startDate1.length -1)
         try {
             const candidate = await tgUser.findOne({userId: id})
             if (!candidate) {
@@ -96,7 +97,8 @@ const start = async () => {
 
     bot.onText(/\d{1}[.]?\d{1}[.]?\d/, async msg => {
         const id = msg.chat.id
-        const regDate = moment(new Date()).locale('ru').format('lll')
+        const regDate1 = moment(new Date()).locale('ru').format('LL')
+        const regDate = regDate1.substring(0, regDate1.length -1)
         const uuid = _ => 'BUZZ_x0x0x0x0x0'.replace(/x|0/g, v => v === 'x'
             ? String.fromCharCode(Math.floor(Math.random() * 26) + 97).toUpperCase()
             : Math.floor(Math.random() * 10)).toUpperCase()
@@ -168,6 +170,67 @@ const start = async () => {
             await errorMessage(e)
         }
     })
+
+    bot.onText(/\/info/, async msg => {
+        const {id} = msg.chat
+        try {
+            await tgUser.find().then(async allUsers => {
+                const users = allUsers.map((f) => {
+                const userPhone = f.phone ? f.phone.substring(f.phone.length - 7) : ''
+                const userPhoneCode = f.phone ? f.phone.substr(0, f.phone.length - 7) : ''
+                    return `${f.name};${f.username ? `${f.username}` : ''};${f.phone[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode}) ${userPhone}`};${f.birthDate};${f.promo};${f.startDate};${f.regDate}`
+                }).join('\n')
+
+                const buf = iconv.encode(users, 'win1251')
+
+                await fs.writeFile("./files/users.csv", buf, {}, async (err) => {
+                    if (err) console.log(err)
+                })
+
+                await bot.sendMessage(id, `Файл с информацией по пользователям`)
+                return bot.sendDocument(id, './files/users.csv')
+            })
+        } catch (e) {
+            await errorMessage(e)
+        }
+    })
+
+    bot.onText(/\/codes/, async msg => {
+        const {id} = msg.chat
+        try {
+            await tgUser.find().then(async allUsers => {
+                const codes = allUsers.map((f) => {
+                    return `${f.promo}`
+                }).join('\n')
+
+                await fs.writeFile("./files/codes.csv", codes, {}, async (err) => {
+                    if (err) console.log(err)
+                })
+
+                await bot.sendMessage(id, `Файл с промокодами пользователей`)
+                return bot.sendDocument(id, './files/codes.csv')
+            })
+        } catch (e) {
+            await errorMessage(e)
+        }
+    })
+
+    bot.onText(/\/list/, async msg => {
+        const {id} = msg.chat
+        try {
+            await tgUser.find().then(async allUsers => {
+                const codes = allUsers.map((f) => {
+                    const result = `${f.name.padEnd(30, ' ')} ${f.promo}`
+                    return result
+                }).join(`\n`)
+
+                return bot.sendMessage(id, codes)
+            })
+        } catch (e) {
+            await errorMessage(e)
+        }
+    })
+
 }
 
 start()
