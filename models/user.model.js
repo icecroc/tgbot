@@ -1,14 +1,14 @@
 const {Schema, model} = require('mongoose')
 
 const tgUser = new Schema({
-    userId: {type: String, required: true, unique: true},
-    username: {type: String, default: ''},
+    userId: {type: String},
+    username: {type: String},
     name: {type: String},
-    promo: {type: String, default: ''},
-    phone: {type: String, default: ''},
+    promo: {type: String},
+    phone: {type: String},
     birthDate: {type: String},
     startDate: {type: String},
     regDate: {type: String}
 })
 
-module.exports = model('tgUser', tgUser)
+module.exports = model('tgUsers', tgUser)
