@@ -16,7 +16,7 @@ async function errorMessage(e) {
 }
 
 async function sendContactRequest(id, first_name) {
-    return bot.sendMessage(id, `Приветствую вас, ${first_name}\nОтправьте контакт, и зарегистрируйтесь в системе, для получения промокодов и прочих плюшек`, {
+    return bot.sendMessage(id, `Приветствую вас, ${first_name}\nОтправьте контакт, и зарегистрируйтесь в системе, для получения промокода на первую покупку своего девайса в магазинах The Buzz`, {
         reply_markup: {keyboard: [
             [{text: 'Отправить контакт', callback_data: 'contact', request_contact: true}],
             [{text: 'Промокод'}]
@@ -66,7 +66,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {name: name})
-                    return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'`)
+                    return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'\nК примеру 12.12.1999`)
                 }
             }
         } catch (e) {
@@ -87,7 +87,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {name: name})
-                    return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'`)
+                    return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'\nК примеру 12.12.1999`)
                 }
             }
         } catch (e) {
@@ -137,7 +137,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {phone: phone})
-                    return bot.sendMessage(id, `Контакт успешно зарегистрирован (обновлён)\nТеперь введи свои ФИО`)
+                    return bot.sendMessage(id, `Контакт успешно зарегистрирован (обновлён)\nТеперь введи свои ФИО\nК примеру: Иванов Иван Иванович`)
                 }
             }
         } catch (e) {
@@ -178,7 +178,8 @@ const start = async () => {
                 const users = allUsers.map((f) => {
                 const userPhone = f.phone ? f.phone.substring(f.phone.length - 7) : ''
                 const userPhoneCode = f.phone ? f.phone.substr(0, f.phone.length - 7) : ''
-                    return `${f.name};${f.username ? `${f.username}` : ''};${f.phone[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode}) ${userPhone}`};${f.birthDate};${f.promo};${f.startDate};${f.regDate}`
+                const phone = `${userPhoneCode[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode} ${userPhone})`}`
+                    return `${f.name ? `${f.name}` : 'не ввели'};${f.username ? `${f.username}` : 'нет username'};${f.phone ? `${phone}` : `не ввели`};${f.birthDate ? `${f.birthDate}` : 'не ввели'};${f.promo ? `${f.promo}` : `регистрацию не закончили`};${f.startDate};${f.regDate ? `${f.regDate}` : `регистрацию не закончили`}`
                 }).join('\n')
 
                 const buf = iconv.encode(users, 'win1251')
@@ -219,8 +220,9 @@ const start = async () => {
         const {id} = msg.chat
         try {
             await tgUser.find().then(async allUsers => {
-                const codes = allUsers.map((f) => {
-                    const result = `${f.name.padEnd(30, ' ')} ${f.promo}`
+                const codes = allUsers.map((f, i) => {
+                    //const result = `${i + 1}.${f.name.padEnd(30, ' ')} ${f.promo}`
+                    const result = `${i + 1} ${f.name ? `${f.name.padEnd(30, '')}` : ''} ${f.promo ? `${f.promo}` : 'Регистрация не закончена'}`
                     return result
                 }).join(`\n`)
 
@@ -229,6 +231,11 @@ const start = async () => {
         } catch (e) {
             await errorMessage(e)
         }
+    })
+
+    bot.onText(/\/commands/, async msg => {
+        const {id} = msg.chat
+        return bot.sendMessage(id, `Список команд бота\n/info - получить файл с данными пользователей\n/codes - получить файл с промокодами пользователей\n/list - бот отправит список пользователей с их промокодами`)
     })
 
 }
