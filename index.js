@@ -16,6 +16,7 @@ async function errorMessage(e) {
 }
 
 async function sendContactRequest(id, first_name) {
+    await bot.sendMessage(id, `Salom, ${first_name}\n«The Buzz» do'konlarida qurilmangizni birinchi xarid qilish uchun reklama kodini olish uchun, kontaktni yuboring va tizimda ro'yxatdan o'ting.`)
     return bot.sendMessage(id, `Приветствую вас, ${first_name}\nОтправьте контакт, и зарегистрируйтесь в системе, для получения промокода на первую покупку своего девайса в магазинах The Buzz`, {
         reply_markup: {keyboard: [
             [{text: 'Отправить контакт', callback_data: 'contact', request_contact: true}],
@@ -59,6 +60,7 @@ const start = async () => {
         try {
             const candidate = await tgUser.findOne({userId: id})
             if (!candidate) {
+                await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
                 if (candidate.promo) {
@@ -66,6 +68,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {name: name})
+                    await bot.sendMessage(id, `Ismingiz muvaffaqiyatli qayd etildi\nEndi tug'ilgan kuningizni "dd.aa.yyyy" formatida kiriting - 01.01.2000`)
                     return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'\nК примеру 12.12.1999`)
                 }
             }
@@ -80,6 +83,7 @@ const start = async () => {
         try {
             const candidate = await tgUser.findOne({userId: id})
             if (!candidate) {
+                await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
                 if (candidate.promo) {
@@ -87,6 +91,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {name: name})
+                    await bot.sendMessage(id, `Ismingiz muvaffaqiyatli qayd etildi\nEndi tug'ilgan kuningizni "dd.aa.yyyy" formatida kiriting - 01.01.2000`)
                     return bot.sendMessage(id, `Ваше ФИО успешно записано\nТеперь введите вашу дату рождения в формате 'дд.мм.гггг'\nК примеру 12.12.1999`)
                 }
             }
@@ -107,6 +112,7 @@ const start = async () => {
         try {
             const candidate = await tgUser.findOne({userId: id})
             if (!candidate) {
+                await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
                 if (candidate.promo) {
@@ -116,7 +122,7 @@ const start = async () => {
                     await tgUser.findOneAndUpdate({userId: id}, {promo: code, regDate: regDate, birthDate: birthDate})
                     await bot.sendMessage(id, `Поздравляем с регистрацией\nЛови свой первый промокод на 10 000 сум : ${code}\nПредъявите этот промокод в любом магазине The Buzz`)
                     await bot.sendMessage(groupId, `${candidate.name} зарегистрирован(а) с промокодом: ${code}`)
-                    return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
+                    return bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nQo‘shimcha 10 000 so‘m olish uchun havolaga o‘ting va UDS ilovasini yuklab oling\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 }
             }
         } catch (e) {
@@ -137,6 +143,7 @@ const start = async () => {
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
                     await tgUser.findOneAndUpdate({userId: id}, {phone: phone})
+                    await bot.sendMessage(id, `Kontakt roʻyxatdan oʻtkazildi (yangilangan)\nEndi to'liq ismingizni kiriting (Pulatov Pulat Pulatovich)`)
                     return bot.sendMessage(id, `Контакт успешно зарегистрирован (обновлён)\nТеперь введи свои ФИО\nК примеру: Иванов Иван Иванович`)
                 }
             }
@@ -159,6 +166,7 @@ const start = async () => {
                         await bot.sendMessage(id, `Ваш промокод ${candidate.promo}\nПредъявите этот промокод в любом магазине The Buzz`)
                         return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                     } else {
+                        await bot.sendMessage(id, `Hali roʻyxatdan oʻtmaganga oʻxshaysiz.`)
                         await bot.sendMessage(id, `Видимо вы ещё не прошли регистрацию до конца`)
                         return sendContactRequest(id, first_name)
                     }
