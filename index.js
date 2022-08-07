@@ -6,6 +6,7 @@ const fs = require("fs");
 const iconv = require('iconv-lite')
 const config = require('config')
 const token = config.get('TOKEN')
+//const test = config.get('TEST')
 const dbPASS = config.get('dbPASS')
 const groupId = '-1001737425964'
 
@@ -27,8 +28,8 @@ async function sendContactRequest(id, first_name) {
 
 
 const start = async () => {
-    mongoose.connect(`mongodb+srv://mernapp:${dbPASS}@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority`).then(() => console.log('MongoDB connected'))
-    //mongoose.connect(`mongodb://localhost:27017/tgbot`)
+    //mongoose.connect(`mongodb+srv://mernapp:${dbPASS}@mernapp.jwkv0.mongodb.net/?retryWrites=true&w=majority`).then(() => console.log('MongoDB connected'))
+    mongoose.connect(`mongodb://localhost:27017/tgbot`)
 
 
     bot.onText(/\/start/, async msg =>{
@@ -63,7 +64,11 @@ const start = async () => {
                 await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
-                if (candidate.promo) {
+                if (!candidate.phone) {
+                    await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
+                    return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
+                }
+                else if (candidate.promo) {
                     await bot.sendMessage(id, `Вы уже зарегистрированны, ваш промокод ${candidate.promo}\nПредъявите этот промокод в любом магазине The Buzz`)
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
@@ -86,7 +91,11 @@ const start = async () => {
                 await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
-                if (candidate.promo) {
+                if (!candidate.phone) {
+                    await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
+                    return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
+                }
+                else if (candidate.promo) {
                     await bot.sendMessage(id, `Вы уже зарегистрированны, ваш промокод ${candidate.promo}\nПредъявите этот промокод в любом магазине The Buzz`)
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
@@ -115,7 +124,15 @@ const start = async () => {
                 await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
                 return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
             } else if (candidate) {
-                if (candidate.promo) {
+                if (!candidate.phone) {
+                    await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
+                    return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
+                }
+                else if (!candidate.name) {
+                    await bot.sendMessage(id, `Nimadir xato ketdi? buyruq bilan qayta urinib ko‘ring\n/start`)
+                    return bot.sendMessage(id, `Что-то пошло не по плану, попробуйте снова с помощью команды \n/start`)
+                }
+                else if (candidate.promo) {
                     await bot.sendMessage(id, `Вы уже зарегистрированны, ваш промокод ${candidate.promo}\nПредъявите этот промокод в любом магазине The Buzz`)
                     return  bot.sendMessage(id, `Чтобы получить дополнительные 10 000 сум переходи по ссылке и скачивай приложение UDS\nhttps://buzzuz.uds.app/c/certificates/receive?token=efc51fb53c6a5d07a88d52d6726f36ed53d1644cc9aa5c2fc4023726346bfe09`)
                 } else {
@@ -186,7 +203,7 @@ const start = async () => {
                 const users = allUsers.map((f) => {
                 const userPhone = f.phone ? f.phone.substring(f.phone.length - 7) : ''
                 const userPhoneCode = f.phone ? f.phone.substr(0, f.phone.length - 7) : ''
-                const phone = `${userPhoneCode[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode} ${userPhone})`}`
+                const phone = `${userPhoneCode[0] === '+' ? `(${userPhoneCode}) ${userPhone}` : `(+${userPhoneCode}) ${userPhone}`}`
                     return `${f.name ? `${f.name}` : 'не ввели'};${f.username ? `${f.username}` : 'нет username'};${f.phone ? `${phone}` : `не ввели`};${f.birthDate ? `${f.birthDate}` : 'не ввели'};${f.promo ? `${f.promo}` : `регистрацию не закончили`};${f.startDate};${f.regDate ? `${f.regDate}` : `регистрацию не закончили`}`
                 }).join('\n')
 
